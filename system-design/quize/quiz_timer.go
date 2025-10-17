@@ -1,8 +1,9 @@
 package main
 
-import "fmt"
-
-// Question(map[Question]Answer{}), Answer, Score
+import (
+	"fmt"
+	"time"
+)
 
 var (
 	questions = map[string]string{
@@ -10,8 +11,8 @@ var (
 		"What is 2 + 2?":                                  "4",
 		"What is the largest planet in our solar system?": "Jupiter",
 	}
-
-	score = 0
+	answerCh = make(chan string)
+	score    = 0
 )
 
 func main() {
@@ -21,16 +22,22 @@ func main() {
 
 func StartQuiz() {
 	for q, a := range questions {
-		fmt.Println(q)
-		answer := ReadFromTerminal()
-		if answer == a {
-			score++
+		fmt.Printf(q + ": ")
+		go ReadFromTerminal()
+
+		select {
+		case answer := <-answerCh:
+			if answer == a {
+				score++
+			}
+		case <-time.After(5 * time.Second):
+			fmt.Println("\nTime's up for this question!")
 		}
 	}
 }
 
-func ReadFromTerminal() string {
+func ReadFromTerminal() {
 	var input string
 	fmt.Scanln(&input)
-	return input
+	answerCh <- input
 }
