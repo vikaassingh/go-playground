@@ -1,4 +1,4 @@
-package main
+package quize
 
 import (
 	"fmt"
@@ -15,11 +15,6 @@ var (
 	score    = 0
 )
 
-func main() {
-	StartQuiz()
-	fmt.Printf("Your final score is: %d out of %d\n", score, len(questions))
-}
-
 func StartQuiz() {
 	for q, a := range questions {
 		fmt.Printf(q + ": ")
@@ -34,6 +29,7 @@ func StartQuiz() {
 			fmt.Println("\nTime's up for this question!")
 		}
 	}
+	fmt.Printf("Your final score is: %d out of %d\n", score, len(questions))
 }
 
 func ReadFromTerminal() {
