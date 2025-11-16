@@ -1,10 +1,11 @@
 package main
 
 import (
-	"go-playground/advanced"
+	"go-playground/system-design/logging"
 )
 
 func main() {
 	// quize.StartQuiz()
-	advanced.OddEvenSync()
+	// advanced.OddEvenSync()
+	logging.UrlLogging()
 }
