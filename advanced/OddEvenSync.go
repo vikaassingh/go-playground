@@ -31,8 +31,6 @@ func main() {
 	go oddWorker(ch, wg)
 
 	wg.Wait()
-	close(oddTurn)
-	close(evenTurn)
 }
 
 func oddWorker(ch <-chan int, wg *sync.WaitGroup) {
@@ -41,7 +39,7 @@ func oddWorker(ch <-chan int, wg *sync.WaitGroup) {
 		<-oddTurn
 		num, ok := <-ch
 		if !ok {
-			evenTurn <- struct{}{}
+			close(evenTurn)
 			return
 		}
 		fmt.Println("O:", num)
@@ -55,7 +53,7 @@ func evenWorker(ch <-chan int, wg *sync.WaitGroup) {
 		<-evenTurn
 		num, ok := <-ch
 		if !ok {
-			oddTurn <- struct{}{}
+			close(oddTurn)
 			return
 		}
 		fmt.Println("E:", num)
