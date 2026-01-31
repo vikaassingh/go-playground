@@ -25,9 +25,10 @@ type HttpResponse struct {
 }
 
 func UrlLogging() {
-	// wg.Add(1)
+	cwg := &sync.WaitGroup{}
+	cwg.Add(1)
 	go func() {
-		// defer wg.Done()
+		defer cwg.Done()
 		for res := range responseCh {
 			log.Printf("URL: %s, Status Code: %d, Message: %s\n", res.Url, res.StatusCode, res.Message)
 		}
@@ -43,6 +44,7 @@ func UrlLogging() {
 
 	wg.Wait()
 	close(responseCh)
+	// cwg.Wait()
 }
 
 func logUrl(url string) {
