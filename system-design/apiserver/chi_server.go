@@ -9,12 +9,14 @@ type Server struct {
 	isReady atomic.Bool
 	isDraining atomic.Bool
 	activeRequest atomic.Int64
+	drainTimeout time.Duration
 }
 
 func main() {
 	svr := &Server{
 		host : "localhost",
 		port : "8080",
+		drainTimeout : time.Secons * 5,
 	}
 	svr.Run()
 }
@@ -118,7 +120,7 @@ func (s *Server) GracefullyShutdown() {
 }
 
 func (s *Server) Shutdown() {	
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), s.drainTimeout)
 	defer cancel()
 	if err := s.server.Shutdown(shutdownCtx); err != nil {
 		log.Printf("Gracefully shutdown failed: %v", err)
