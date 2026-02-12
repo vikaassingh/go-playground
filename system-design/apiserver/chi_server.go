@@ -10,12 +10,17 @@ type Server struct {
 	isDraining atomic.Bool
 	activeRequest atomic.Int64
 	drainTimeout time.Duration
+	baseContext context.Context
+	cancel context.CancelFunc
 }
 
 func main() {
+	baseCtx, cancel := context.WithCancel(context.Background())
 	svr := &Server{
 		host : "localhost",
 		port : "8080",
+		cancel: cancel,
+		baseContext : baseCtx,
 		drainTimeout : time.Secons * 5,
 	}
 	svr.Run()
@@ -33,6 +38,9 @@ func (s *Server) SetupServer() {
 	s.server = &http.Server{
 		Addr : s.host + ":" + s.port,
 		Handler : routes,
+		BaseContext: func(net.Listener) context.Context {
+            return s.baseContext
+        },
 	}
 	s.isReady.Store(true)
 }
@@ -122,6 +130,7 @@ func (s *Server) GracefullyShutdown() {
 func (s *Server) Shutdown() {	
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), s.drainTimeout)
 	defer cancel()
+	s.cancel()
 	if err := s.server.Shutdown(shutdownCtx); err != nil {
 		log.Printf("Gracefully shutdown failed: %v", err)
 	} else {
