@@ -130,7 +130,7 @@ func (s *Server) GracefullyShutdown() {
 func (s *Server) Shutdown() {	
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), s.drainTimeout)
 	defer cancel()
-	s.cancel()
+	defer s.cancel()
 	if err := s.server.Shutdown(shutdownCtx); err != nil {
 		log.Printf("Gracefully shutdown failed: %v", err)
 	} else {
