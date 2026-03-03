@@ -21,7 +21,7 @@ func main() {
 		port : "8080",
 		cancel: cancel,
 		baseContext : baseCtx,
-		drainTimeout : time.Secons * 5,
+		drainTimeout : time.Second * 5,
 	}
 	svr.Run()
 }
