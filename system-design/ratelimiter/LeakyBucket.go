@@ -79,7 +79,7 @@ func (lb *LeakyBucket) Allow() error {
 		case <-req.done:
 			return nil
 		case <-lb.ctx.Done():
-			return ctx.Err()
+			return lb.ctx.Err()
 		}
 	default:
 		return errors.New("rate limit exceeded")
