@@ -1,60 +1,51 @@
-package advanced
+package main
 
 import (
+	"context"
 	"fmt"
-	"sync"
-)
-
-var (
-	oddTurn  = make(chan struct{}, 1)
-	evenTurn = make(chan struct{}, 1)
 )
 
 func main() {
-	ch := make(chan int)
-	wg := &sync.WaitGroup{}
+	var start, end int = 1, 10
+	oddCh := make(chan int)
+	evenCh := make(chan int)
+	receiver := make(chan int)
+	ctx, cancel := context.WithCancel(context.Background())
 
-	wg.Add(1)
 	go func() {
-		defer wg.Done()
-		for i := 1; i <= 10; i++ {
-			ch <- i
+		defer close(evenCh)
+		for num := range oddCh {
+			receiver <- num
+			if num >= end {
+				cancel()
+				return
+			}
+			evenCh <- num + 1
 		}
-		close(ch)
 	}()
 
-	wg.Add(2)
-	oddTurn <- struct{}{}
-	go evenWorker(ch, wg)
-	go oddWorker(ch, wg)
-
-	wg.Wait()
-}
-
-func oddWorker(ch <-chan int, wg *sync.WaitGroup) {
-	defer wg.Done()
-	for {
-		<-oddTurn
-		num, ok := <-ch
-		if !ok {
-			close(evenTurn)
-			return
+	go func() {
+		defer close(oddCh)
+		for num := range evenCh {
+			receiver <- num
+			if num >= end {
+				cancel()
+				return
+			}
+			oddCh <- num + 1
 		}
-		fmt.Println("O:", num)
-		evenTurn <- struct{}{}
-	}
-}
+	}()
 
-func evenWorker(ch <-chan int, wg *sync.WaitGroup) {
-	defer wg.Done()
+	go func() {
+		oddCh <- start
+	}()
+
 	for {
-		<-evenTurn
-		num, ok := <-ch
-		if !ok {
-			close(oddTurn)
+		select {
+		case <-ctx.Done():
 			return
+		case num := <-receiver:
+			fmt.Println(num)
 		}
-		fmt.Println("E:", num)
-		oddTurn <- struct{}{}
 	}
 }
